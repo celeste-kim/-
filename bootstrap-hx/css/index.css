@@ -1,0 +1,29 @@
+html,body,container-fluid,.left_nav_wrapper{
+	height: 100%;
+}
+nav.navbar{
+	background-color: #777;
+}
+.content1{
+	margin-top: 5rem;
+}
+.left_nav_wrapper{
+	padding-left: 0px;
+	padding-right: 0px;
+}
+.left_nav{
+	border-right: 1px solid #DFE0E1;
+	padding-right: -15px;
+	height: 100%;
+}
+.left_nav>li{
+	border: none;
+	padding: 1.0rem 3rem;
+	background-color: #ededed;
+}
+.left_nav_wrapper>.left_nav>.current{
+	background-color: #bbb;
+}
+.left_nav>li:hover{
+	background-color: #ddd;
+}

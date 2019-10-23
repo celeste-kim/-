@@ -1,0 +1,230 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+	var baseURL = 'http://134.175.100.63:6677';
+ 	$(function(){
+ 		reloadData();
+ 		//给添加绑定弹出模态框事件
+		$('#btn_add').click(function(){
+			$('#waiterModal').modal('show');
+		})
+		//给更新绑定弹出模态框事件
+		$('.btn_upd').click(function(){
+			$('#waiterModal').modal('show');
+		})
+		//给提交绑定事件
+		$('#waiter_sub').click(function(event){
+			var url = baseURL+'/waiter/saveOrUpdate';
+			var id = $('input[name=id]').val();
+			var realname = $('input[name=realname]').val();
+			var status = $('input[name=status]').val();
+			var telephone = $('input[name=telephone]').val();
+			var idcard = $('input[name=idcard]').val();
+			var photo = $('input[name=photo]').val();
+			var data = {
+				id:id,
+				realname:realname,
+				status:status,
+				telephone:telephone,
+				idcard:idcard,
+				photo:photo
+			}
+	    	if(id){
+			    $.post(url,data,function(){
+					alert('修改成功！');
+					reloadData();
+				});	
+		    }else{
+		    	$.post(url,data,function(){
+					alert('添加成功！');
+					reloadData();
+				});	
+		    }
+			//让模态框提交后自动关闭
+			$("#waiterModal").modal('hide');
+			$('.modal-body input').val("");
+		})
+		//添加结束
+		//删除
+	$('#waiter_tbl').on('click','a',function(event){
+		switch(this.className){
+			case 'btn_del':
+			//获取当前行的id
+					var id = $(this).parents('tr').children().eq(0).find('input').val();
+					var data = "id="+id
+					var url = baseURL+'/waiter/deleteById'
+					$.get(url,data,function(response){
+						if(response.status == 200){
+							alert('删除成功！')
+							reloadData();
+						}else{
+							alert('删除失败！')
+						}
+					})
+			    break;
+			case 'btn_upd':
+					$('#waiterModal').modal('show');
+					var id = $(this).parents('tr').children().eq(0).find('input').val();
+					$('input[name=id]').val(id);
+					$('input[name=realname]').val($(this).parents('tr').children().eq(1).text())
+					$('input[name=status]').val($(this).parents('tr').children().eq(2).text())
+					$('input[name=telephone]').val($(this).parents('tr').children().eq(3).text());
+					$('input[name=idcard]').val($(this).parents('tr').children().eq(4).text());
+					$('input[name=photo]').val($(this).parents('tr').children().eq(5).text());
+				break;
+			case 'btn_details':
+					
+			    break;
+		}
+	})
+		//删除结束
+ 	})
+ //批量删除
+ $('#btn_dels').click(function(){
+ 	var ids = [];
+ 	var check = $("input:checkbox:checked");
+ 	check.each(function(){
+ 		ids.push(this.value);
+ 	})
+ 	console.log(ids);
+ 	var arr = [];
+ 	ids.forEach(function (item,index){
+   		arr.push(parseInt(item));
+   	})
+   	console.log(arr);
+   	arr.forEach(function (item,index){
+   		var url = baseURL+"/waiter/deleteById?id=";
+   		url=url+item;
+   		console.log(url)
+   		$.get(url,function(){
+   			reloadData();
+			console.log("删除成功")
+		}); 
+   	})   	
+ })
+ //批量删除结束
+ //加载数据
+	function reloadData(){
+		var url = baseURL+'/waiter/findAll';
+		
+		$.get(url,function(response,status){
+			//将tbody清空
+			$('#waiter_tbody').empty();
+			//追加新的值
+			response.data.forEach(function(item){
+				var newTr = $(`<tr>
+    				<td><input type="checkbox" value="`+item.id+`" name="waiter_id"></td>
+    				<td>`+item.realname+`</td>
+					<td>`+item.status+`</td>
+					<td>`+item.telephone+`</td>
+					<td>`+item.idcard+`</td>
+					<td>`+item.photo+`</td>
+					<td>
+						<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+						<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+					</td>
+    				</tr>`);
+    			$("#waiter_tbody").append(newTr);
+			})
+		})
+	}
+//加载数据结束
+
+</script>
+
+
+
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">服务员管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+	      <button id="btn_add" type="button" class=" btns btn btn-light py-2 my-2">添加</button>
+	      <button  id="btn_dels" type="button" class="btns btn btn-light py-2 my-2">批量删除</button>
+<!-- /btns -->
+<!-- table -->
+<div id="waiter_table">
+	<table class="table table-hover text-center" id="waiter_tbl">
+	  <thead>
+	    <tr>
+	      	<th scope="col">#</th>
+	      	<th scope="col">姓名</th>
+	      	<th scope="col">状态</th>
+	      	<th scope="col">电话</th>
+	      	<th scope="col">身份证</th>
+	      	<th scope="col">照片</th>
+	      	<th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="waiter_tbody">
+	  </tbody>
+	</table>
+</div>
+		
+<!-- /table -->
+ <!-- Modal 模态框-->
+<div class="modal fade" id="waiterModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">更新分类信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id" hidden>
+			    <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_realname">姓名</label>
+					</div>
+				    <div class="col-10"><input type="text" class="input_realname form-control" id="input_realname" name="realname"></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_status">状态</label></div>
+				    <div class="col-10"><input type="text" class="input_status form-control" id="input_status" name="status"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_telephone">电话</label></div>
+				   <div class="col-10"><input type="text" class="input_telephone form-control" id="input_telephone" name="telephone"></div>
+			   </div>		
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_password">密码</label></div>
+				   <div class="col-10"><input type="password" class="input_password form-control" id="input_password" name="password"></div>
+			   </div>		
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_idcard">身份证</label></div>
+				   <div class="col-10"><input type="text" class="input_idcard form-control" id="input_idcard" name="idcard"></div>
+			   </div>			   
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="waiter_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->

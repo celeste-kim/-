@@ -1,0 +1,169 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+	var baseURL = 'http://134.175.100.63:6677';
+	$(function(){
+		reloadData()
+		//给添加绑定弹出模态框事件
+		$('#btn_add').click(function(){
+			$('#orderModal').modal('show');
+		})
+		//给更新绑定弹出模态框事件
+		$('.btn_upd').click(function(){
+			$('#orderModal').modal('show');
+		})
+		//给提交绑定事件
+		$('#order_sub').click(function(event){
+			var url = baseURL+'/order/saveOrUpdate';
+			var id = $('input[name=id]').val();
+			var realname = $('input[name=realname]').val();
+			var status = $('input[name=status]').val();
+			var telephone = $('input[name=telephone]').val();
+			var idcard = $('input[name=idcard]').val();
+			var photo = $('input[name=photo]').val();
+			var data = {
+				id:id,
+				realname:realname,
+				status:status,
+				telephone:telephone,
+				idcard:idcard,
+				photo:photo
+			}
+	    	if(id){
+			    $.post(url,data,function(){
+					alert('修改成功！');
+					reloadData();
+				});	
+		    }else{
+		    	$.post(url,data,function(){
+					alert('添加成功！');
+					reloadData();
+				});	
+		    }
+			//让模态框提交后自动关闭
+			$("#orderModal").modal('hide');
+			$('.modal-body input').val("");
+		})
+		//添加结束
+	})
+//加载数据
+	function reloadData(){
+		var url = baseURL+'/order/findAll'
+		$.get(url,function(response){
+			$('#order_tbody').empty();
+			response.data.forEach(function(item){
+				var newTr = $(`<tr>
+    				<td><input type="checkbox" value="`+item.id+`" name="order_id"></td>
+    				<td>`+item.customerId+`</td>
+					<td>`+item.waiterId+`</td>
+					<td>`+item.total+`</td>
+					<td>`+item.orderTime+`</td>
+					<td>`+item.addressId+`</td>
+					<td>
+						<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+						<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+					</td>
+    				</tr>`)
+				$("#order_tbody").append(newTr);
+
+			})
+		})
+	}	
+</script>
+
+
+
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">订单管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+	      <button id="btn_add" type="button" class=" btns btn btn-light py-2 my-2">添加</button>
+	      <button id="btn_dels" type="button" class="btns btn btn-light py-2 my-2">批量删除</button>
+<!-- /btns -->
+<!-- table -->
+<div id="order_table">
+	<table class="table table-hover text-center" id="order_tbl">
+	  <thead>
+	    <tr>
+	      	<th scope="col">#</th>
+	      	<th scope="col">顾客号</th>
+		    <th scope="col">服务员号</th>
+		    <th scope="col">订单数量</th>
+		    <th scope="col">订单时间</th>
+			<th scope="col">地址号</th>
+		    <th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="order_tbody">
+	  </tbody>
+	</table>
+</div>
+		
+<!-- /table -->
+ <!-- Modal 模态框-->
+<div class="modal fade" id="orderModal" tabindex="-1" role="dialog" >
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">添加订单信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id">
+			    <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_custormerId">顾客号</label>
+					</div>
+				    <div class="col-10"><input type="text" class="input_custormerId form-control" id="input_custormerId" name="custormerId"></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_waiterId">服务员号</label></div>
+				    <div class="col-10"><input type="text" class="input_waiterId form-control" id="input_waiterId" name="waiterId"></div>
+			   </div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_total">订单数量</label></div>
+				    <div class="col-10"><input type="text" class="input_total form-control" id="input_total" name="total"></div>
+			   </div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_orderTime">订单时间</label></div>
+				    <div class="col-10"><input type="text" class="input_orderTime form-control" id="input_orderTime" name="orderTime"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_addressId">地址号</label></div>
+				   <div class="col-10"><input type="text" class="input_addressId form-control" id="input_addressId" name="addressId"></div>
+			   </div>			   
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="waiter_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->

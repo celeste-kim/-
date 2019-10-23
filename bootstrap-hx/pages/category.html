@@ -1,0 +1,208 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+	var baseURL = 'http://134.175.100.63:6677';
+	$(function(){
+		reloadData();
+		//绑定添加事件
+		$('#btn_add').click(function(){
+			$('#categoryModal').modal('show');
+		})
+		//给提交绑定事件
+		$('#category_sub').click(function(){
+			var url = baseURL+'/category/saveOrUpdate';
+			var id = $('input[name=id]').val();
+			var name = $('input[name=name]').val();
+			var num = $('input[name=num]').val();
+			var parentId = $('input[name=parentId]').val();
+			var data = {
+				id:id,
+				name:name,
+				num:num,
+				parentId:parentId
+			}
+			//判断是否有id
+			$.post(url,data,function(response){
+				if(response.status === 200){
+					alert('更新成功！')
+					reloadData();
+				}else{
+					alert('更新失败！')
+				}
+			})
+			//让模态框提交后自动关闭
+			$("#categoryModal").modal('hide');
+			$('.modal-body input').val("");
+		})
+
+	})
+	//给删除按钮绑定事件
+$('#category_tbody').on('click','a',function(event){
+	switch(this.className){
+		//删除
+		case 'btn_del':
+				var id = $(this).parents('tr').children().eq(0).find('input').val();
+				var url = baseURL+'/category/deleteById';
+				var data='id='+id;
+				$.get(url,data,function(response){
+					if(response.status === 200){
+						alert('删除成功！')
+						reloadData()
+					}else{
+						alert('删除失败！')
+					}
+				})
+			break;
+			//更新
+		case 'btn_upd':
+				$('#categoryModal').modal('show');
+				var id = $(this).parents('tr').children().eq(0).find('input').val();
+				$('input[name=id]').val(id);
+				$('input[name=name]').val($(this).parents('tr').children().eq(1).text())
+				$('input[name=num]').val($(this).parents('tr').children().eq(2).text())
+				$('input[name=parentId]').val($(this).parents('tr').children().eq(3).text())
+			break;
+	}
+})
+//给删除按钮绑定事件结束
+//批量删除
+$('#btn_dels').click(function(){
+	var url = baseURL+'/category/batchDelete';
+	var check = $('input:checkbox:checked');
+	var ids=[];
+	check.each(function(){
+		ids.push(this.value)
+	})
+	var data ='';
+	for(var key in ids){
+		var id =ids[key];
+		if(key==0){
+			data+='ids='+id;
+		}else{
+			data+='&ids='+id;
+		}
+	}
+	$.post(url,data,function(response){
+		if(response.status ===200){
+			alert('批量删除成功！！')
+			reloadData()
+		}else{
+			alert('批量删除失败！')
+		}
+	})
+})
+//批量删除结束	
+	// 当点击叉的时候关闭模态框
+	function test(p){
+		$(p).parents('.modal').modal('hide')
+		$('.modal-body input').val("");
+	}
+
+	//重载数据
+	function reloadData(){
+		var url = baseURL+"/category/findAll";
+		$.get(url,function(response,status){
+			$('#category_tbody').empty();
+			response.data.forEach(function(item){
+				var newTr = $(`<tr>
+	    				<td><input type="checkbox" value="`+item.id+`" name="category_id"></td>
+	    				<td>`+item.name+`</td>
+						<td>`+item.num+`</td>
+						<td>`+item.parentId+`</td>
+						<td>
+							<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+							<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+						</td>
+	    				</tr>`);
+					$('#category_tbody').append(newTr);
+			})
+		})
+	}
+</script>
+
+
+
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">分类管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+<button  id="btn_add" type="button" class=" btns btn btn-light py-2 my-2">添加</button>
+<button id="btn_dels" type="button" class="btns btn btn-light py-2 my-2">批量删除</button>
+<!-- /btns -->
+<!-- table -->
+<div id="category_table">
+	<table class="table table-hover text-center" id="category_tbl">
+	  <thead>
+	    <tr>
+	      <th scope="col">#</th>
+	      <th scope="col">商品名称</th>
+	      <th scope="col">数量</th>
+	      <th scope="col">所属分类</th>
+	      <th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="category_tbody">
+	  </tbody>
+	</table>
+</div>
+
+<!-- /table -->
+ <!-- Modal 模态框-->
+<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" >
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">添加分类信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id" hidden>
+			    <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_name">商品名称</label>
+					</div>
+				    <div class="col-10"><input type="text" class="input_name form-control" id="input_name" name="name"></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_num">数量</label></div>
+				    <div class="col-10"><input type="text" class="input_num form-control" id="input_num" name="num"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_parentId">类别</label></div>
+				   <div class="col-10"><input type="text" class="input_parentId form-control" id="input_parentId" name="parentId"></div>
+			   </div>			   
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="category_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->

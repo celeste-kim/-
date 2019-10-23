@@ -1,0 +1,205 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+var baseURL = 'http://134.175.100.63:6677';
+$(function(){
+	reloadData();
+	//添加开始
+	//绑定添加事件
+	$('#btn_add').click(function(){
+		$('#commentModal').modal('show');
+	})
+	//给提交按钮绑定事件
+	$('#comment_sub').click(function(){
+		var url = baseURL+'/comment/saveOrUpdate';
+		var id = $('input[name=id]').val();
+		var content =$('textarea[name=content]').val();
+		var commentTime =$('input[name=commentTime]').val();
+		//订单id要填已存在的id或者不填
+		var orderId =$('input[name=orderId]').val();
+		console.log(id,content,commentTime,orderId)
+		var data;
+		if(id){
+			data ='id='+id+'&content='+content+'&commentTime='+commentTime+'&orderId='+orderId;
+		}else{
+			data ='content='+content+'&commentTime='+commentTime+'&orderId='+orderId;
+		}
+		$.post(url,data,function(response){
+			if(response.status === 200){
+				alert('更新成功！')
+				reloadData()
+			}else{
+				alert('更新失败！')
+			}
+		})
+		//让模态框提交后自动关闭
+		$("#commentModal").modal('hide');
+		$('.modal-body input').val("");
+		$('.modal-body textarea').val('');
+	})
+	//添加结束
+	//为删除和修改按钮绑定事件
+	 $('#comment_tbody').on('click','a',function(event){
+    	switch(this.className){
+    		case 'btn_del':
+    			// console.log($(this).parents('tr').children().eq(0).find('input').val());
+    			var id = $(this).parents('tr').children().eq(0).find('input').val();
+    			//console.log(id);
+    			var data = 'id='+id;
+    			var url = baseURL+'/comment/deleteById'
+    			$.get(url,data,function(response){
+    				if(response.status == 200){
+							alert('删除成功！')
+							reloadData();
+						}else{
+							alert('删除失败！')
+						}
+					})
+    		break;
+    		case 'btn_upd':
+    			var id =  $(this).parents('tr').children().eq(0).find('input').val();
+    			$('#commentModal').modal('show');
+    			$('input[name=id]').val(id);
+				$('textarea[name=content]').val($(this).parents('tr').children().eq(1).text())
+				$('input[name=commentTime]').val($(this).parents('tr').children().eq(2).text())
+				$('input[name=orderId]').val($(this).parents('tr').children().eq(3).text());
+    		break;
+    	}
+    })
+    //为删除和修改按钮绑定事件结束
+})
+//批量删除
+	$('#btn_dels').click(function(){
+    	var url = baseURL+'/comment/batchDelete'
+    	var check = $('input:checkbox:checked');
+    	var ids=[];
+    	check.each(function(){
+    		ids.push(this.value)
+    	})
+    	var data = ''
+    	for(var key in ids){
+    		var id = ids[key];
+    		if(key == 0){
+    			data+='ids='+id
+    		}else{
+    			data+='&ids='+id
+    		}
+    	}
+    	$.post(url,data,function(response){
+    		if(response.status === 200){
+    			alert('批量删除成功!')
+    			reloadData()
+    		}else{
+    			alert('批量删除失败！！')
+    		}
+    	})
+    })
+//批量删除结束	
+//重载数据
+function reloadData(){
+	var url = baseURL+"/comment/findAll";
+	$.get(url,function(response,status){
+		$('#comment_tbody').empty();
+		response.data.forEach(function(item){
+			var newTr = $(`<tr>
+    				<td><input type="checkbox" value="`+item.id+`" name="comment_id"></td>
+    				<td>`+item.content+`</td>
+					<td>`+item.commentTime+`</td>
+					<td>`+item.orderId+`</td>
+					<td>
+						<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+						<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+					</td>
+    				</tr>`);
+				$('#comment_tbody').append(newTr);
+		})
+	})
+}	
+</script>
+
+
+
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">评价管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+	      <button id="btn_add" type="button" class=" btns btn btn-light py-2 my-2">添加</button>
+	      <button id="btn_dels" type="button" class="btns btn btn-light py-2 my-2">批量删除</button>
+<!-- /btns -->
+<!-- table -->
+<div id="comment_table">
+	<table class="table table-hover text-center" id="comment_tbl">
+	  <thead>
+	    <tr>
+	      <th scope="col">#</th>
+	      <th scope="col">评价内容</th>
+	      <th scope="col">评价时间</th>
+	      <th scope="col">评价单号</th>
+	      <th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="comment_tbody">
+	  </tbody>
+	</table>
+</div>		
+<!-- /table -->
+<!-- Modal 模态框-->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog"  >
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">添加评价信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id" hidden>
+			    <div class="form-group row">
+			        <div class="col-3 text-center"><label for="input_content">评价内容</label>
+					</div>
+				    <div class="col-9">
+				    <textarea class="input_content form-control" id="input_content" name="content"></textarea></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-3 text-center"><label for="input_status">评价时间</label></div>
+				    <div class="col-9"><input type="text" class="input_status form-control" id="input_status" name="commentTime"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-3 text-center"><label for="input_telephone">评价单号</label></div>
+				   <div class="col-9"><input type="text" class="input_telephone form-control" id="input_telephone" name="orderId"></div>
+			   </div>   
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="comment_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->

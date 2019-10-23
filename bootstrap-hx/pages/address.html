@@ -1,0 +1,234 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+	var baseURL = "http://134.175.100.63:6677";
+	//绑定添加事件
+	$(function(){
+		//调用重载数据
+		reloadData();
+		$('#btn_add').click(function(){
+			$('#addressModal').modal('show');
+		})
+		//给提交绑定事件
+		$('#address_sub').click(
+			function(){
+				var url = baseURL+'/address/saveOrUpdate';
+				var id = $('input[name=id]').val();
+				var province = $('input[name=province]').val();
+				var city = $('input[name=city]').val();
+				var area = $('input[name=area]').val();
+				var address = $('input[name=address]').val();
+				var telephone = $('input[name=telephone]').val();
+				var customerId = $('select option:selected').val();
+				var data = {
+					id:id,
+					province:province,
+					city:city,
+					area:area,
+					address:address,
+					telephone:telephone,
+					customerId:customerId
+				}
+				$.post(url,data,function(){
+				alert('更新成功！');
+				reloadData();
+				});	
+				//让模态框提交后自动关闭
+				$("#addressModal").modal('hide');
+				$('.modal-body input').val("");
+		})
+		
+	})
+	//通过按钮关闭模态框
+	function test(p){
+		$(p).parents('.modal').modal('hide')
+		$('.modal-body input').val("");
+	}
+	//删除和修改开始
+	//给删除按钮绑定事件
+	$('#address_tbl').on('click','a',function(event){
+		switch(this.className){
+			case 'btn_del':
+			//获取当前行的id
+					var id = $(this).parents('tr').children().eq(0).find('input').val();
+					var data = "id="+id
+					var url = baseURL+'/address/deleteById'
+					$.get(url,data,function(response){
+						if(response.status == 200){
+							alert('删除成功！')
+							reloadData();
+						}else{
+							alert('删除失败！')
+						}
+					})
+			    break;
+			case 'btn_upd':
+					$('#addressModal').modal('show');
+					var id = $(this).parents('tr').children().eq(0).find('input').val();
+					$('input[name=id]').val(id);
+					$('input[name=province]').val($(this).parents('tr').children().eq(1).text())
+					$('input[name=city]').val($(this).parents('tr').children().eq(2).text())
+					$('input[name=area]').val($(this).parents('tr').children().eq(3).text());
+					$('input[name=address]').val($(this).parents('tr').children().eq(4).text());
+					$('input[name=telephone]').val($(this).parents('tr').children().eq(5).text());
+				break;
+			// case 'btn_details':
+			// 		//获取当前行id
+			// 		var customerId = $('select option:selected').val()
+			// 		var id = $(this).parents('tr').children().eq(0).find('input').val();
+			// 		$('#wrapper').load(url+"?time="+Math.random())
+			// 		// 将值保存到浏览器中
+			// 		sessionStorage.setItem("customerId",customerId)
+			// 		sessionStorage.setItem("id",id)
+			//     break;
+		}
+	})
+	//删除和修改结束
+	//批量删除
+	$('#btn_dels').click(function(){
+		var url = baseURL+'/address/batchDelete'
+		var check = $('input:checkbox:checked');
+		var ids = [];
+		check.each(function(){
+			ids.push(this.value);
+		})
+		console.log(ids);
+		var data ='';
+		for(var key in ids){
+			var id = ids[key];
+			if(key==0){
+				data+='ids='+id
+			}else{
+				data+='&ids='+id
+			}
+		}
+		$.post(url,data,function(response){
+			if(response.status === 200){
+				alert('批量删除成功！！')
+				reloadData();
+			}else{
+				alert('批量删除失败！')
+			}
+		})
+	})
+	//批量删除结束
+	//加载数据
+	function reloadData(){
+		var url = baseURL+"/address/findAll";
+		$.get(url,function(response,status){
+			//将tbody清空
+			$('#address_tbody').empty();
+			//追加新的值
+			response.data.forEach(
+				function(item){
+					var newTr = $(`<tr>
+    				<td><input type="checkbox" value="`+item.id+` "name="address_id"></td>
+    				<td>`+item.province+`</td>
+					<td>`+item.city+`</td>
+					<td>`+item.area+`</td>
+					<td>`+item.address+`</td>
+					<td>`+item.telephone+`</td>
+					<td>
+						<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+						<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+					</td>
+    				</tr>`);
+    				$("#address_tbody").append(newTr);
+				})
+		})
+	}
+</script>
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">地址管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+	      <button type="button" class=" btns btn btn-light py-2 my-2" id="btn_add">添加</button>
+	      <button id="btn_dels" type="button" class="btns btn btn-light py-2 my-2 ">批量删除</button>
+<!-- /btns -->
+
+<!-- table -->
+<div id="address_table">
+	<table class="table table-hover text-center" id="address_tbl">
+	  <thead>
+	    <tr>
+	      <th scope="col">#</th>
+	      <th scope="col">省份</th>
+	      <th scope="col">城市</th>
+	      <th scope="col">地区</th>
+	      <th scope="col">地址</th>
+	      <th scope="col">电话</th>
+	      <th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="address_tbody">
+	  </tbody>
+	</table>
+</div>
+<!-- /table -->
+ <!-- Modal 模态框-->
+<div class="modal fade" id="addressModal" tabindex="-1" role="dialog" >
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">添加地址信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id" hidden>
+			    <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_province">省份</label>
+					</div>
+				    <div class="col-10"><input type="text" class="input_province form-control" id="input_province" name="province"></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-2 text-center"><label for="input_city">城市</label></div>
+				    <div class="col-10"><input type="text" class="input_city form-control" id="input_city" name="city"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_area">地区</label></div>
+				   <div class="col-10"><input type="text" class="input_area form-control" id="input_area" name="area"></div>
+			   </div>			   
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_address">地址</label></div>
+	 			   <div class="col-10"><input type="text" class="input_address form-control" id="input_address" name="address"></div>	
+ 			   </div>			   
+			   <div class="form-group row">
+				   <div class="col-2 text-center"><label for="input_telephone">电话</label></div>
+				   <div class="col-10"> <input type="text" class="input_telephone form-control" id="input_telephone" name="telephone"></div>
+			   </div>
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="address_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->

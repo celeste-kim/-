@@ -1,0 +1,235 @@
+<style>
+	#address_nav{
+		background-color: #fff;
+		border: none;
+		height: 30px;
+	}
+	.address_content{
+		max-width: 100%;
+		padding-left: 0;
+	}
+</style>
+
+<script>
+	var baseURL = 'http://134.175.100.63:6677';
+	$(function(){
+		reloadData()
+		//给添加绑定弹出模态框事件
+		$('#btn_add').click(function(){
+			$('#productModal').modal('show');
+		})
+		//给更新绑定弹出模态框事件
+		$('.btn_upd').click(function(){
+			$('#productModal').modal('show');
+		})
+		//给提交绑定事件
+		//添加开始
+		$('#product_sub').click(
+			function(){
+				var url = baseURL+'/product/saveOrUpdate';
+				var id = $('input[name=id]').val();
+				var name = $('input[name=name]').val();
+				var description = $('input[name=description]').val();
+				var price = $('input[name=price]').val();
+				var photo = $('input[name=photo]').val();
+				var data = {
+					id:id,
+					name:name,
+					description:description,
+					price:price,
+					photo:photo
+				}
+				if(id){
+				    $.post(url,data,function(){
+						alert('修改成功！');
+						reloadData();
+					});	
+			    }else{
+			    	$.post(url,data,function(){
+						alert('添加成功！');
+						reloadData();
+					});	
+			    }
+				//让模态框提交后自动关闭
+				$("#productModal").modal('hide');
+				$('.modal-body input').val("");
+		})
+		//添加结束
+		//删除
+		$('#product_tbody').click(function(event){
+			if(event.target.nodeName ==="A"){
+				console.log(event.target.className);
+				switch(event.target.className){
+					case "btn_del":
+						var id = event.target.parentNode.parentNode.children[0].children[0].value;
+					var data = "id="+id
+					var url = baseURL+'/product/deleteById'
+					$.get(url,data,function(response){
+						if(response.status == 200){
+							alert('删除成功！')
+							reloadData();
+						}else{
+							alert('删除失败！')
+						}
+					})
+						break;
+					case "btn_upd":
+					$('#productModal').modal('show');
+						var id = event.target.parentNode.parentNode.children[0].children[0].value;
+						console.log(id);
+						var name = event.target.parentNode.parentNode.children[1].innerText;
+						console.log(name);
+						var description = event.target.parentNode.parentNode.children[2].innerText;
+						console.log(description);
+						var price = event.target.parentNode.parentNode.children[3].innerText;
+						console.log(price);
+						var photo = event.target.parentNode.parentNode.children[4].innerText;
+						
+						$('input[name=id]').val(id);
+						$('input[name=name]').val(name);
+						$('input[name=description]').val(description);
+						$('input[name=price]').val(price);
+						$('input[name=photo]').val(photo);
+						break;
+				}			
+			}
+		})
+		//删除结束
+	})
+	//批量删除
+	$('#btn_dels').click(function(){
+	 	var ids = [];
+	 	var check = $("input:checkbox:checked");
+	 	var url = baseURL+'/product/batchDelete';
+	 	check.each(function(){
+	 		ids.push(this.value);
+	 	})
+	 	console.log(ids);
+	 	var data = '';
+	 	for(var key in ids){
+	 		var id = ids[key];
+	 		if(key=0){
+	 			data+='ids='+id;
+	 		}else{
+	 			data+='&ids='+id;
+	 		}
+	 	}
+	 	$.post(url,data,function(response){
+	 		if(response.status == 200){
+				alert('批量删除成功！')
+				reloadData();
+			}else{
+				alert('批量删除失败！')
+			}
+	 	}) 	
+	 	
+	 })
+	//批量删除结束
+	//重载数据
+	function reloadData(){
+		var url = baseURL+'/product/findAll';
+		$('#product_tbody').empty();
+		$.get(url,function(response){
+			response.data.forEach(function(item){
+				var newTr = $(`<tr>
+    				<td><input type="checkbox" value="`+item.id+`" name="product_id"></td>
+    				<td>`+item.name+`</td>
+					<td>`+item.description+`</td>
+					<td>`+item.price+`</td>
+					<td>`+item.photo+`</td>
+					<td>
+						<a class="btn_del" href="javascript:void(0)">删除</a>&nbsp;
+						<a class="btn_upd" href="javascript:void(0)">修改</a>&nbsp;
+					</td>
+    				</tr>`);
+    			$("#product_tbody").append(newTr);
+			})
+		})
+	}
+</script>
+
+
+
+<!-- content -->
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 address_content">
+  <!-- nav -->
+	      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 border-bottom">
+	        <nav aria-label="breadcrumb">
+			  <ol class="breadcrumb" id="address_nav">
+			    <li class="breadcrumb-item"><a href="#">主页</a></li>
+			    <li class="breadcrumb-item active" aria-current="page">产品管理</li>
+			  </ol>
+			</nav>
+	      </div>
+<!-- /nav -->
+<!-- btns -->
+	      <button id="btn_add" type="button" class=" btns btn btn-light py-2 my-2">添加</button>
+	      <button id="btn_dels" type="button" class="btns btn btn-light py-2 my-2">批量删除</button>
+<!-- /btns -->
+<!-- table -->
+<div id="product_table">
+	<table class="table table-hover text-center" id="product_tbl">
+	  <thead>
+	    <tr>
+	      	<th scope="col">#</th>
+	      	<th scope="col">商品名称</th>
+	      	<th scope="col">商品描述</th>
+	      	<th scope="col">价格</th>
+	      	<th scope="col">图片</th>
+	      	<th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody id="product_tbody">
+	  </tbody>
+	</table>
+</div>
+		
+<!-- /table -->
+ <!-- Modal 模态框-->
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">添加产品信息</h5>
+        <button type="button" class="close" onclick="test(this)">
+          <span >&times;</span>
+        </button>
+      </div>
+      <!-- 模态框中间的输入框 -->
+      <div class="modal-body">
+	        <form>
+	        	<input type="text" name="id" hidden>
+			    <div class="form-group row">
+			        <div class="col-3 text-center"><label for="input_name">商品名称</label>
+					</div>
+				    <div class="col-9"><input type="text" class="input_name form-control" id="input_name" name="name"></div>	
+				</div>
+			   <div class="form-group row">
+			        <div class="col-3 text-center"><label for="input_description">描述</label></div>
+				    <div class="col-9"><input type="text" class="input_description form-control" id="input_description" name="description"></div>
+			   </div>
+			   <div class="form-group row">
+				   <div class="col-3 text-center"><label for="input_price">价格</label></div>
+				   <div class="col-9"><input type="text" class="input_price form-control" id="input_price" name="price"></div>
+			   </div>	
+			   	<div class="form-group row">
+				   <div class="col-3 text-center"><label for="input_photo">图片</label></div>
+				   <div class="col-9"><input type="text" class="input_photo form-control" id="input_photo" name="photo"></div>
+			   </div>	
+			   	<div class="form-group row">
+				   <div class="col-3 text-center"><label for="input_categoryId">分类</label></div>
+				   <div class="col-9"><input type="text" class="input_categoryId form-control" id="input_categoryId" name="categoryId"></div>
+			   </div>			   
+			</form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="test(this)">&nbsp;取消&nbsp;</button>&nbsp;
+        <button type="button" class="btn btn-primary" id="product_sub">&nbsp;提交&nbsp;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modal -->
+</main>
+<!--/content  -->
